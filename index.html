@@ -1,0 +1,2090 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BRD Builder — Labtek Indie</title>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+  :root {
+    --ink: #000000;
+    --ink-light: #333;
+    --ink-muted: #666;
+    --surface: #F5F5F5;
+    --surface-elevated: #ffffff;
+    --border: #E0E0E0;
+    --border-focus: #000000;
+    --accent: #DDFE74;
+    --accent-hover: #c8e866;
+    --accent-bg: #f4ffe0;
+    --green: #2a7d5f;
+    --green-bg: #f0faf5;
+    --amber: #b8860b;
+    --amber-bg: #fef9ee;
+    --red: #b91c1c;
+    --red-bg: #fde8e8;
+    --step-inactive: #d4d4cf;
+    --step-complete: #2a7d5f;
+    --primary: #BEE1F1;
+    --primary-bg: #eaf5fb;
+    --radius: 10px;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.06);
+    --shadow-md: 0 4px 20px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04);
+    --transition: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Public Sans', sans-serif;
+    background: var(--surface);
+    color: var(--ink);
+    min-height: 100vh;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── Topbar ── */
+  .topbar {
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+    background: rgba(190,225,241,0.4);
+    backdrop-filter: blur(10px);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .topbar-label {
+    font-family: monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink);
+    background: rgba(0,0,0,0.08);
+    padding: 4px 10px;
+    border-radius: 20px;
+  }
+
+  /* ── Layout ── */
+  .layout {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+  }
+
+  /* ── Header ── */
+  .header { margin-bottom: 40px; }
+  .header-eyebrow {
+    font-family: monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #000;
+    background: var(--primary);
+    padding: 4px 10px;
+    border-radius: 20px;
+    display: inline-block;
+    margin-bottom: 12px;
+  }
+  .header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 1.2;
+    margin-bottom: 12px;
+  }
+  .header-descriptor {
+    font-size: 13px;
+    color: var(--ink-muted);
+    margin-bottom: 16px;
+  }
+  .header p {
+    font-size: 15px;
+    color: var(--ink-light);
+    line-height: 1.65;
+    max-width: 540px;
+  }
+
+  /* ── Stepper ── */
+  .stepper {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin-bottom: 36px;
+    padding: 0 4px;
+  }
+  .step-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+  .step-dot {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: monospace;
+    font-size: 11px;
+    font-weight: 500;
+    transition: all var(--transition);
+    border: 2px solid var(--step-inactive);
+    color: var(--ink-muted);
+    background: var(--surface-elevated);
+    flex-shrink: 0;
+  }
+  .step-dot.active {
+    border-color: var(--ink);
+    color: var(--surface-elevated);
+    background: var(--ink);
+  }
+  .step-dot.complete {
+    border-color: var(--step-complete);
+    color: var(--surface-elevated);
+    background: var(--step-complete);
+  }
+  .step-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--ink-muted);
+    transition: color var(--transition);
+    white-space: nowrap;
+  }
+  .step-label.active { color: var(--ink); }
+  .step-label.complete { color: var(--step-complete); }
+  .step-line {
+    flex: 1;
+    height: 2px;
+    background: var(--step-inactive);
+    margin: 0 6px;
+    min-width: 10px;
+    transition: background var(--transition);
+  }
+  .step-line.complete { background: var(--step-complete); }
+
+  /* ── Card ── */
+  .card {
+    background: var(--surface-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 36px 32px;
+    box-shadow: var(--shadow-sm);
+  }
+
+  /* ── Step sections ── */
+  .step-section { display: none; animation: fadeIn 0.3s ease; }
+  .step-section.active { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .step-title {
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin-bottom: 4px;
+  }
+  .step-subtitle {
+    font-size: 14px;
+    color: var(--ink-muted);
+    margin-bottom: 28px;
+  }
+
+  /* ── Fields ── */
+  .field { margin-bottom: 24px; }
+  .field:last-of-type { margin-bottom: 0; }
+  .field-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .field-label label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .field-label .badge {
+    font-family: monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-weight: 500;
+  }
+  .badge-required { background: var(--primary-bg); color: #0a7aad; }
+  .badge-optional { background: var(--surface); color: var(--ink-muted); border: 1px solid var(--border); }
+  .field-hint {
+    font-size: 13px;
+    color: var(--ink-muted);
+    margin-top: 6px;
+    line-height: 1.5;
+  }
+
+  /* ── Inputs ── */
+  input[type="text"],
+  input[type="email"],
+  textarea,
+  select {
+    width: 100%;
+    padding: 12px 14px;
+    font-family: 'Public Sans', sans-serif;
+    font-size: 14px;
+    color: var(--ink);
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    transition: all var(--transition);
+    outline: none;
+    appearance: none;
+  }
+  input:focus, textarea:focus, select:focus {
+    border-color: var(--border-focus);
+    box-shadow: 0 0 0 3px rgba(0,0,0,0.06);
+    background: var(--surface-elevated);
+  }
+  textarea { resize: vertical; min-height: 100px; line-height: 1.6; }
+  input::placeholder, textarea::placeholder { color: var(--ink-muted); font-size: 13.5px; }
+  select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    padding-right: 36px;
+    cursor: pointer;
+  }
+
+  /* Validation error state */
+  .field-has-error input,
+  .field-has-error textarea,
+  .field-has-error select {
+    border-color: #dc2626;
+    background: #fff5f5;
+  }
+  .field-error-msg {
+    font-size: 12px;
+    color: #dc2626;
+    margin-top: 6px;
+  }
+
+  /* ── Radio cards ── */
+  .radio-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .radio-cards-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .radio-card {
+    padding: 14px 16px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all var(--transition);
+    background: var(--surface);
+    position: relative;
+  }
+  .radio-card:hover { border-color: var(--ink-muted); background: var(--surface-elevated); }
+  .radio-card.selected { border-color: var(--ink); background: var(--surface-elevated); box-shadow: 0 0 0 1px var(--ink); }
+  .radio-card input { display: none; }
+  .radio-card-label { font-size: 13.5px; font-weight: 500; color: var(--ink); display: block; }
+  .radio-card-desc { font-size: 12px; color: var(--ink-muted); margin-top: 2px; line-height: 1.4; }
+
+  /* ── Actions bar ── */
+  .actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+  }
+
+  /* ── Buttons ── */
+  .btn {
+    font-family: 'Public Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 11px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all var(--transition);
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+  }
+  .btn-primary { background: var(--ink); color: var(--surface-elevated); }
+  .btn-primary:hover { background: #333; transform: translateY(-1px); box-shadow: var(--shadow-md); }
+  .btn-primary:disabled { background: var(--ink-muted); cursor: not-allowed; transform: none; box-shadow: none; }
+  .btn-secondary { background: transparent; color: var(--ink-light); padding: 11px 16px; }
+  .btn-secondary:hover { color: var(--ink); }
+  .btn-accent {
+    background: var(--accent);
+    color: #000;
+    width: 100%;
+    justify-content: center;
+    padding: 14px 24px;
+    font-size: 15px;
+  }
+  .btn-accent:hover { background: var(--accent-hover); transform: translateY(-1px); box-shadow: 0 4px 20px rgba(221,254,116,0.3); }
+  .btn-outline {
+    background: transparent;
+    color: var(--ink);
+    border: 1.5px solid var(--border);
+    width: 100%;
+    justify-content: center;
+    padding: 13px 24px;
+  }
+  .btn-outline:hover { border-color: var(--ink-muted); background: var(--surface); }
+  .btn-arrow { transition: transform 0.2s ease; }
+  .btn:hover .btn-arrow { transform: translateX(3px); }
+  .btn-secondary:hover .btn-arrow-back { transform: translateX(-3px); }
+
+  /* ── Step progress ── */
+  .step-progress {
+    font-family: monospace;
+    font-size: 12px;
+    color: var(--ink-muted);
+    text-align: center;
+    margin-top: 20px;
+  }
+
+  /* ── Separator ── */
+  .field-separator { height: 1px; background: var(--border); margin: 28px 0; }
+
+  /* ── Callout ── */
+  .callout {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    margin-bottom: 24px;
+  }
+  .callout-icon { flex-shrink: 0; width: 18px; height: 18px; color: var(--ink-muted); margin-top: 1px; }
+  .callout p { font-size: 13px; color: var(--ink-light); line-height: 1.55; }
+
+  /* ── Result blocks ── */
+  .result-block {
+    background: var(--surface);
+    border-radius: 8px;
+    padding: 18px 20px;
+    margin-bottom: 12px;
+  }
+  .result-block:last-of-type { margin-bottom: 0; }
+  .result-label {
+    font-family: monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ink-muted);
+    margin-bottom: 6px;
+  }
+  .result-value { font-size: 14px; color: var(--ink); line-height: 1.6; }
+  .result-block-warning {
+    border-left: 3px solid var(--amber);
+    background: var(--amber-bg);
+  }
+  .result-block-warning .result-label { color: var(--amber); }
+  .result-block-success {
+    border-left: 3px solid var(--green);
+    background: var(--green-bg);
+  }
+  .result-block-success .result-label { color: var(--green); }
+  .result-block-danger {
+    border-left: 3px solid var(--red);
+    background: var(--red-bg);
+  }
+  .result-block-danger .result-label { color: var(--red); }
+
+  /* Gap list */
+  .gap-list { list-style: none; padding: 0; margin: 0; }
+  .gap-item {
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(184,134,11,0.2);
+    font-size: 13.5px;
+    line-height: 1.55;
+    color: var(--ink-light);
+  }
+  .gap-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .gap-item strong { color: var(--ink); display: block; margin-bottom: 2px; font-size: 13px; }
+  .gap-number {
+    font-family: monospace;
+    font-size: 10px;
+    background: rgba(184,134,11,0.15);
+    color: var(--amber);
+    padding: 1px 6px;
+    border-radius: 3px;
+    margin-right: 6px;
+  }
+
+  /* ── Maturity badge ── */
+  .maturity-indicator {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+  }
+  .maturity-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 700;
+    font-family: monospace;
+    letter-spacing: 0.04em;
+  }
+  .maturity-incomplete { background: var(--red-bg); color: var(--red); }
+  .maturity-developing { background: var(--amber-bg); color: var(--amber); }
+  .maturity-ready { background: var(--green-bg); color: var(--green); }
+
+  /* ── Trade-off grid ── */
+  .tradeoff-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+  .tradeoff-col { border-radius: 8px; padding: 16px 18px; }
+  .tradeoff-col-dim { background: #fafafa; border: 1px solid var(--border); }
+  .tradeoff-col-highlight { background: var(--primary-bg); border: 1.5px solid var(--primary); }
+  .tradeoff-col-title {
+    font-family: monospace;
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+  .tradeoff-col-dim .tradeoff-col-title { color: var(--ink-muted); }
+  .tradeoff-col-highlight .tradeoff-col-title { color: var(--step-complete); }
+  .tradeoff-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 7px;
+    font-size: 13px;
+    line-height: 1.5;
+    margin-bottom: 8px;
+    color: var(--ink-light);
+  }
+  .tradeoff-item:last-child { margin-bottom: 0; }
+  .tradeoff-item-icon { flex-shrink: 0; margin-top: 2px; font-size: 12px; }
+  .tradeoff-col-highlight .tradeoff-item { color: var(--ink); }
+
+  /* ── Loading state ── */
+  .loading-state {
+    text-align: center;
+    padding: 60px 20px;
+  }
+  .spinner {
+    width: 36px;
+    height: 36px;
+    border: 3px solid var(--border);
+    border-top-color: var(--ink);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 20px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-text { font-size: 15px; font-weight: 600; color: var(--ink); margin-bottom: 6px; }
+  .loading-subtext { font-size: 13px; color: var(--ink-muted); }
+
+  /* Error state */
+  .error-state { text-align: center; padding: 40px 20px; }
+  .error-icon { font-size: 32px; margin-bottom: 12px; }
+  .error-title { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+  .error-desc { font-size: 14px; color: var(--ink-muted); margin-bottom: 20px; }
+
+  /* ── Results section header ── */
+  .results-header { margin-bottom: 28px; }
+  .results-eyebrow {
+    font-family: monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--green);
+    margin-bottom: 6px;
+  }
+  .results-title {
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin-bottom: 4px;
+  }
+  .results-subtitle { font-size: 14px; color: var(--ink-muted); }
+
+  .section-divider {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 28px 0 20px;
+  }
+  .section-divider::before, .section-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+  .section-divider span {
+    font-family: monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-muted);
+    white-space: nowrap;
+  }
+
+  /* ── CTA section ── */
+  .cta-section {
+    margin-top: 32px;
+    padding-top: 28px;
+    border-top: 1px solid var(--border);
+  }
+  .cta-label {
+    font-family: monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-muted);
+    margin-bottom: 8px;
+  }
+  .cta-heading {
+    font-size: 17px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin-bottom: 6px;
+  }
+  .cta-desc {
+    font-size: 14px;
+    color: var(--ink-light);
+    margin-bottom: 20px;
+    line-height: 1.6;
+  }
+  .cta-stack { display: flex; flex-direction: column; gap: 10px; }
+  .btn-link {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ink-muted);
+    text-decoration: none;
+    text-align: center;
+    padding: 8px;
+    transition: color var(--transition);
+    border: none;
+    background: none;
+    cursor: pointer;
+    width: 100%;
+    font-family: 'Public Sans', sans-serif;
+  }
+  .btn-link:hover { color: var(--ink); text-decoration: underline; }
+
+  /* ── Full-screen modal ── */
+  .modal-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.45);
+    backdrop-filter: blur(4px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    padding: 24px;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal-card {
+    background: var(--surface-elevated);
+    border-radius: var(--radius);
+    padding: 36px 32px;
+    max-width: 440px;
+    width: 100%;
+    box-shadow: 0 16px 48px rgba(0,0,0,0.14);
+    position: relative;
+    animation: fadeIn 0.25s ease;
+  }
+  .modal-close {
+    position: absolute;
+    top: 16px; right: 16px;
+    background: var(--surface);
+    border: none;
+    border-radius: 50%;
+    width: 32px; height: 32px;
+    cursor: pointer;
+    font-size: 18px;
+    color: var(--ink-muted);
+    display: flex; align-items: center; justify-content: center;
+    transition: all var(--transition);
+  }
+  .modal-close:hover { background: var(--border); color: var(--ink); }
+  .modal-eyebrow {
+    font-family: monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-muted);
+    margin-bottom: 8px;
+  }
+  .modal-title {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 8px;
+  }
+  .modal-desc {
+    font-size: 14px;
+    color: var(--ink-light);
+    margin-bottom: 24px;
+    line-height: 1.6;
+  }
+  .modal-form { display: flex; flex-direction: column; gap: 12px; }
+  .modal-form input {
+    padding: 12px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: 'Public Sans', sans-serif;
+    background: var(--surface);
+    outline: none;
+    transition: all var(--transition);
+    color: var(--ink);
+  }
+  .modal-form input:focus {
+    border-color: var(--border-focus);
+    box-shadow: 0 0 0 3px rgba(0,0,0,0.06);
+    background: var(--surface-elevated);
+  }
+  .modal-form input::placeholder { color: var(--ink-muted); font-size: 13.5px; }
+  .modal-form input.input-error { border-color: #dc2626; background: #fff5f5; }
+  .modal-privacy {
+    font-size: 11.5px;
+    color: var(--ink-muted);
+    margin-top: 4px;
+    text-align: center;
+    line-height: 1.5;
+  }
+
+  /* Success state in modal */
+  .modal-success { display: none; text-align: center; padding: 8px 0; }
+  .modal-success.active { display: block; }
+  .success-icon {
+    width: 52px; height: 52px;
+    background: var(--green-bg);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 16px;
+    font-size: 24px;
+  }
+  .success-title { font-size: 18px; font-weight: 700; margin-bottom: 6px; letter-spacing: -0.02em; }
+  .success-desc { font-size: 14px; color: var(--ink-light); margin-bottom: 24px; line-height: 1.6; }
+  .success-actions { display: flex; flex-direction: column; gap: 10px; }
+
+  /* ── Divider ── */
+  .divider-text {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 24px 0;
+  }
+  .divider-text::before, .divider-text::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+  .divider-text span {
+    font-family: monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-muted);
+    white-space: nowrap;
+  }
+
+  /* ── Hidden PDF template ── */
+  #pdf-template {
+    position: absolute;
+    left: -9999px;
+    top: 0;
+    width: 794px;
+    font-family: 'Public Sans', Arial, sans-serif;
+    color: #111;
+    font-size: 12px;
+    line-height: 1.6;
+    padding: 0;
+  }
+  .pdf-header {
+    border-bottom: 2px solid #000;
+    padding-bottom: 16px;
+    margin-bottom: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    page-break-inside: avoid;
+  }
+  .pdf-doc-type {
+    font-family: monospace;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #666;
+    margin-bottom: 4px;
+  }
+  .pdf-doc-title { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
+  .pdf-meta-right { text-align: right; font-size: 11px; color: #666; }
+  .pdf-meta-right div { margin-bottom: 2px; }
+  .pdf-meta-table {
+    background: #f5f5f5;
+    border-radius: 6px;
+    padding: 14px 16px;
+    margin-bottom: 24px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    page-break-inside: avoid;
+  }
+  .pdf-meta-item {
+    flex: 1 1 calc(50% - 5px);
+    min-width: 120px;
+  }
+  .pdf-meta-item label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #888;
+    display: block;
+    margin-bottom: 2px;
+    font-weight: 600;
+  }
+  .pdf-meta-item span { font-size: 13px; font-weight: 500; color: #111; }
+  .pdf-section { margin-bottom: 28px; }
+  .pdf-section-title {
+    font-size: 14px;
+    font-weight: 700;
+    border-bottom: 1.5px solid #000;
+    padding-bottom: 6px;
+    margin-bottom: 14px;
+    letter-spacing: -0.01em;
+  }
+  .pdf-section-number {
+    font-family: monospace;
+    font-size: 10px;
+    color: #888;
+    margin-right: 8px;
+  }
+  .pdf-para { font-size: 12px; line-height: 1.7; color: #222; margin-bottom: 10px; }
+  .pdf-list { list-style: none; padding: 0; margin: 0 0 10px; }
+  .pdf-list li {
+    padding: 7px 0;
+    border-bottom: 1px solid #eee;
+    font-size: 12px;
+    color: #222;
+    display: flex;
+    gap: 8px;
+  }
+  .pdf-list li:last-child { border-bottom: none; }
+  .pdf-list li::before { content: '—'; color: #999; flex-shrink: 0; }
+  .pdf-table { width: 100%; border-collapse: collapse; margin-bottom: 10px; font-size: 11.5px; }
+  .pdf-table th {
+    background: #f0f0f0;
+    text-align: left;
+    padding: 7px 10px;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #666;
+    font-weight: 600;
+  }
+  .pdf-table td { padding: 8px 10px; border-bottom: 1px solid #eee; vertical-align: top; }
+  .pdf-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 10px;
+    font-weight: 700;
+    font-family: monospace;
+  }
+  .pdf-badge-high { background: #fde8e8; color: #b91c1c; }
+  .pdf-badge-medium { background: #fef9ee; color: #b8860b; }
+  .pdf-badge-low { background: #f0faf5; color: #2a7d5f; }
+  .pdf-open-items { background: #fef9ee; border-left: 3px solid #b8860b; padding: 14px 16px; border-radius: 4px; }
+  .pdf-open-item {
+    padding: 6px 0;
+    border-bottom: 1px solid rgba(184,134,11,0.2);
+    font-size: 12px;
+    color: #444;
+  }
+  .pdf-open-item:last-child { border-bottom: none; }
+  .pdf-footer {
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 1px solid #ddd;
+    background: #f5f5f5;
+    padding: 20px 24px;
+    border-radius: 6px;
+  }
+  .pdf-footer-brand { font-weight: 700; font-size: 14px; margin-bottom: 4px; }
+  .pdf-footer-desc { font-size: 11.5px; color: #555; line-height: 1.6; margin-bottom: 12px; }
+  .pdf-footer-cta { font-size: 11px; color: #888; }
+
+  /* ── Responsive ── */
+  @media (max-width: 520px) {
+    .layout { padding: 24px 16px 60px; }
+    .card { padding: 28px 20px; }
+    .header h1 { font-size: 24px; }
+    .radio-cards { grid-template-columns: 1fr; }
+    .radio-cards-3 { grid-template-columns: 1fr; }
+    .step-label { display: none; }
+    .step-line { min-width: 14px; margin: 0 4px; }
+    .step-dot { width: 26px; height: 26px; font-size: 10px; }
+    .tradeoff-grid { grid-template-columns: 1fr; }
+    .modal-card { padding: 28px 20px; }
+    .pdf-meta-table { flex-direction: column; }
+    .pdf-meta-item { flex: 1 1 100%; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════ TOPBAR ═══ -->
+<div class="topbar">
+  <img src="labtek-logo.png" alt="Labtek Indie" style="height:36px;">
+  <div class="topbar-label">Free Tool</div>
+</div>
+
+<!-- ═══════════════════════════════════════════ MAIN ═══ -->
+<div class="layout">
+
+  <div class="header">
+    <div class="header-eyebrow">Free Tool · Labtek Indie</div>
+    <h1>Request Anda sering balik<br>dengan pertanyaan?</h1>
+    <p class="header-descriptor">BRD adalah dokumen spesifikasi yang IT butuhkan sebelum bisa mulai membangun.</p>
+    <p>Masalahnya hampir selalu ada di dokumen. BRD yang tidak spesifik memaksa IT mulai dari asumsi yang salah. Tool ini memandu Anda menyusunnya dari nol — 4 langkah, 10 menit, satu PDF siap kirim ke tim teknis.</p>
+  </div>
+
+  <!-- ── Stepper: 4 input steps + 1 results ── -->
+  <div class="stepper">
+    <div class="step-item">
+      <div class="step-dot active" id="dot-1">1</div>
+      <span class="step-label active" id="label-1">Masalah</span>
+    </div>
+    <div class="step-line" id="line-1"></div>
+    <div class="step-item">
+      <div class="step-dot" id="dot-2">2</div>
+      <span class="step-label" id="label-2">Solusi</span>
+    </div>
+    <div class="step-line" id="line-2"></div>
+    <div class="step-item">
+      <div class="step-dot" id="dot-3">3</div>
+      <span class="step-label" id="label-3">Pihak</span>
+    </div>
+    <div class="step-line" id="line-3"></div>
+    <div class="step-item">
+      <div class="step-dot" id="dot-4">4</div>
+      <span class="step-label" id="label-4">Urgensi</span>
+    </div>
+    <div class="step-line" id="line-4"></div>
+    <div class="step-item">
+      <div class="step-dot" id="dot-5">5</div>
+      <span class="step-label" id="label-5">Hasil</span>
+    </div>
+  </div>
+
+  <div class="card">
+
+    <!-- ════════ STEP 1: Masalah & Konteks ════════ -->
+    <div class="step-section active" id="step-1">
+      <div class="step-title">Masalah & Konteks</div>
+      <div class="step-subtitle">Ceritakan masalahnya dengan bebas — semakin konkret, semakin kuat BRD-nya.</div>
+
+      <div class="field" id="field-problem-statement">
+        <div class="field-label">
+          <label for="problem-statement">Apa masalah bisnis yang ingin diselesaikan?</label>
+          <span class="badge badge-required">Wajib</span>
+        </div>
+        <textarea id="problem-statement" rows="4" placeholder="Contoh: Proses approval pengadaan barang kami membutuhkan waktu 5-7 hari kerja karena masih manual — dokumen fisik harus berpindah tangan antar departemen, sering hilang atau tertunda, dan tidak ada visibilitas status approval untuk pemohon..."></textarea>
+        <div class="field-hint">Jelaskan dari perspektif bisnis — dampaknya, siapa yang terkena, dan seberapa sering terjadi.</div>
+      </div>
+
+      <div class="field" id="field-problem-scenario">
+        <div class="field-label">
+          <label for="problem-scenario">Ceritakan skenario konkret — kapan masalah ini paling terasa?</label>
+          <span class="badge badge-required">Wajib</span>
+        </div>
+        <textarea id="problem-scenario" rows="3" placeholder="Contoh: Setiap awal bulan, tim operasional harus mengajukan 20-30 PO. Rata-rata 40% dari PO ini terlambat diproses karena approval manual, yang menyebabkan keterlambatan pengiriman ke klien dan denda kontrak..."></textarea>
+        <div class="field-hint">Situasi spesifik membantu IT memahami konteks dan urgensi secara konkret.</div>
+      </div>
+
+      <div class="field" id="field-previous-attempts">
+        <div class="field-label">
+          <label for="previous-attempts">Apa yang sudah pernah dicoba untuk menyelesaikan masalah ini?</label>
+          <span class="badge badge-required">Wajib</span>
+        </div>
+        <textarea id="previous-attempts" rows="3" placeholder="Contoh: Sudah pernah minta IT untuk bikin form Google Sheets, tapi tidak bisa handle approval multi-level. Pernah juga coba pakai WhatsApp group khusus untuk tracking, tapi tidak ada audit trail dan sering terlewat..."></textarea>
+        <div class="field-hint">Termasuk workaround manual, tools yang sudah dicoba, atau request ke IT sebelumnya.</div>
+      </div>
+
+      <div class="field">
+        <div class="field-label">
+          <label for="current-tools">Tools/sistem yang saat ini digunakan?</label>
+          <span class="badge badge-optional">Opsional</span>
+        </div>
+        <textarea id="current-tools" rows="2" placeholder="Contoh: SAP untuk ERP, Microsoft 365, WhatsApp untuk komunikasi, Excel untuk tracking manual..."></textarea>
+        <div class="field-hint">Sistem existing yang relevan — penting untuk IT ketika menilai kompleksitas integrasi.</div>
+      </div>
+
+      <div class="actions">
+        <div></div>
+        <button class="btn btn-primary" onclick="goToStep(2)">
+          Lanjut <span class="btn-arrow">→</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ════════ STEP 2: Solusi & Keberhasilan ════════ -->
+    <div class="step-section" id="step-2">
+      <div class="step-title">Solusi & Keberhasilan</div>
+      <div class="step-subtitle">Tidak perlu teknis — ceritakan dari sudut pandang pengguna.</div>
+
+      <div class="callout">
+        <svg class="callout-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <p>Bagian ini bukan untuk mendefinisikan solusi teknis — tapi untuk membantu IT memahami apa yang Anda inginkan dari perspektif pengguna. IT yang akan menerjemahkan ke solusi yang tepat.</p>
+      </div>
+
+      <div class="field" id="field-solution-vision">
+        <div class="field-label">
+          <label for="solution-vision">Bayangan solusi ideal — seperti apa?</label>
+          <span class="badge badge-required">Wajib</span>
+        </div>
+        <textarea id="solution-vision" rows="4" placeholder="Contoh: Idealnya ada sistem di mana pemohon bisa submit request online, approver langsung dapat notifikasi dan bisa approve dari mana saja (termasuk dari HP), dan semua orang bisa lihat statusnya real-time tanpa harus tanya-tanya..."></textarea>
+        <div class="field-hint">Gambarkan pengalaman yang Anda inginkan — bagaimana prosesnya berjalan dari awal sampai selesai.</div>
+      </div>
+
+      <div class="field" id="field-user-story">
+        <div class="field-label">
+          <label for="user-story">User story</label>
+          <span class="badge badge-required">Wajib</span>
+        </div>
+        <textarea id="user-story" rows="3" placeholder="Sebagai [staff pengadaan], saya ingin [bisa submit PO request online dan track statusnya real-time], supaya [saya tidak perlu chase approver satu-satu dan bisa pastikan PO diproses tepat waktu]..."></textarea>
+        <div class="field-hint">Format: "Sebagai [siapa], saya ingin [apa], supaya [kenapa/manfaatnya apa]." Bisa lebih dari satu user story.</div>
+      </div>
+
+      <div class="field" id="field-success-indicators">
+        <div class="field-label">
+          <label for="success-indicators">Kalau solusi berhasil, apa 1-2 hal konkret yang berubah?</label>
+          <span class="badge badge-required">Wajib</span>
+        </div>
+        <textarea id="success-indicators" rows="4" placeholder="Contoh: 1) Waktu approval PO turun dari rata-rata 5 hari menjadi maksimal 1 hari kerja. 2) Tidak ada lagi komplain dari tim operasional soal PO terlambat karena alasan administrasi. 3) Manager bisa approve dari HP tanpa harus ada di kantor..."></textarea>
+        <div class="field-hint">Fokus pada perubahan yang paling penting untuk bisnis — bukan fitur teknisnya.</div>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-secondary" onclick="goToStep(1)">
+          <span class="btn-arrow-back">←</span> Kembali
+        </button>
+        <button class="btn btn-primary" onclick="goToStep(3)">
+          Lanjut <span class="btn-arrow">→</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ════════ STEP 3: Stakeholders & Constraints ════════ -->
+    <div class="step-section" id="step-3">
+      <div class="step-title">Stakeholders & Batasan</div>
+      <div class="step-subtitle">IT perlu tahu siapa yang terlibat dan batasan apa yang ada.</div>
+
+      <div class="field" id="field-stakeholders">
+        <div class="field-label">
+          <label for="stakeholders">Siapa yang terdampak langsung + siapa yang akan pakai solusi sehari-hari?</label>
+          <span class="badge badge-required">Wajib</span>
+        </div>
+        <textarea id="stakeholders" rows="4" placeholder="Contoh: Tim Procurement (15 orang) yang proses setiap PO, Finance yang reconcile akhir bulan, Pemohon PO (staff tiap departemen), Approver Level 1 (Supervisor/Manager, sekitar 30 orang), Approver Level 2 (VP/Direktur, 8 orang)..."></textarea>
+        <div class="field-hint">Sertakan perkiraan jumlah orang dan kapasitas keterlibatan mereka.</div>
+      </div>
+
+      <div class="field">
+        <div class="field-label">
+          <label for="stakeholders-sponsor">Sponsor / decision maker</label>
+          <span class="badge badge-optional">Opsional</span>
+        </div>
+        <input type="text" id="stakeholders-sponsor" placeholder="Contoh: VP Operations (budget owner), Head of IT (technical sponsor)">
+        <div class="field-hint">Siapa yang memiliki authority untuk approve budget dan keputusan akhir?</div>
+      </div>
+
+      <div class="field-separator"></div>
+
+      <div class="field" id="field-constraint-timeline">
+        <div class="field-label">
+          <label>Target timeline implementasi</label>
+          <span class="badge badge-required">Wajib</span>
+        </div>
+        <div class="radio-cards" id="rg-constraint-timeline">
+          <div class="radio-card" onclick="selectRadio(this)">
+            <input type="radio" name="constraint-timeline" value="kurang-1-bulan">
+            <span class="radio-card-label">< 1 bulan</span>
+            <span class="radio-card-desc">Sangat mendesak, perlu quick win</span>
+          </div>
+          <div class="radio-card" onclick="selectRadio(this)">
+            <input type="radio" name="constraint-timeline" value="1-3-bulan">
+            <span class="radio-card-label">1 – 3 bulan</span>
+            <span class="radio-card-desc">Ada deadline bisnis yang jelas</span>
+          </div>
+          <div class="radio-card" onclick="selectRadio(this)">
+            <input type="radio" name="constraint-timeline" value="3-6-bulan">
+            <span class="radio-card-label">3 – 6 bulan</span>
+            <span class="radio-card-desc">Target semester ini atau Q berikutnya</span>
+          </div>
+          <div class="radio-card" onclick="selectRadio(this)">
+            <input type="radio" name="constraint-timeline" value="fleksibel">
+            <span class="radio-card-label">Fleksibel</span>
+            <span class="radio-card-desc">Belum ada deadline spesifik</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="field" id="field-constraint-budget">
+        <div class="field-label">
+          <label>Estimasi budget (rough)</label>
+          <span class="badge badge-required">Wajib</span>
+        </div>
+        <div class="radio-cards" id="rg-constraint-budget">
+          <div class="radio-card" onclick="selectRadio(this)">
+            <input type="radio" name="constraint-budget" value="under-50jt">
+            <span class="radio-card-label">< 50 juta</span>
+          </div>
+          <div class="radio-card" onclick="selectRadio(this)">
+            <input type="radio" name="constraint-budget" value="50-200jt">
+            <span class="radio-card-label">50 – 200 juta</span>
+          </div>
+          <div class="radio-card" onclick="selectRadio(this)">
+            <input type="radio" name="constraint-budget" value="200-500jt">
+            <span class="radio-card-label">200 – 500 juta</span>
+          </div>
+          <div class="radio-card" onclick="selectRadio(this)">
+            <input type="radio" name="constraint-budget" value="above-500jt">
+            <span class="radio-card-label">> 500 juta</span>
+          </div>
+          <div class="radio-card" onclick="selectRadio(this)" style="grid-column: 1 / -1;">
+            <input type="radio" name="constraint-budget" value="belum-ditentukan">
+            <span class="radio-card-label">Belum ditentukan</span>
+            <span class="radio-card-desc">Menunggu estimasi dari IT</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field-label">
+          <label for="constraint-systems">Sistem existing yang harus diintegrasikan + batasan lain</label>
+          <span class="badge badge-optional">Opsional</span>
+        </div>
+        <textarea id="constraint-systems" rows="3" placeholder="Contoh: SAP ERP (core system), Active Directory untuk autentikasi, Microsoft Outlook untuk notifikasi. Harus on-premise, data tidak boleh keluar dari server Indonesia..."></textarea>
+        <div class="field-hint">Regulasi, compliance requirements, preferensi teknologi, atau batasan lain yang perlu IT ketahui.</div>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-secondary" onclick="goToStep(2)">
+          <span class="btn-arrow-back">←</span> Kembali
+        </button>
+        <button class="btn btn-primary" onclick="goToStep(4)">
+          Lanjut <span class="btn-arrow">→</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ════════ STEP 4: Urgensi ════════ -->
+    <div class="step-section" id="step-4">
+      <div class="step-title">Kenapa sekarang?</div>
+      <div class="step-subtitle">Konteks timing membantu IT memprioritaskan dan propose roadmap yang realistis.</div>
+
+      <div class="field" id="field-urgency-level">
+        <div class="field-label">
+          <label>Tingkat urgensi</label>
+          <span class="badge badge-required">Wajib</span>
+        </div>
+        <div class="radio-cards radio-cards-3" id="rg-urgency-level">
+          <div class="radio-card" onclick="selectRadio(this)">
+            <input type="radio" name="urgency-level" value="sangat-mendesak">
+            <span class="radio-card-label">Sangat mendesak</span>
+            <span class="radio-card-desc">Ada deadline atau risiko bisnis yang jelas</span>
+          </div>
+          <div class="radio-card" onclick="selectRadio(this)">
+            <input type="radio" name="urgency-level" value="penting-tidak-urgent">
+            <span class="radio-card-label">Penting, tidak urgent</span>
+            <span class="radio-card-desc">Perlu diselesaikan tahun ini tapi fleksibel</span>
+          </div>
+          <div class="radio-card" onclick="selectRadio(this)">
+            <input type="radio" name="urgency-level" value="baru-eksplorasi">
+            <span class="radio-card-label">Baru eksplorasi</span>
+            <span class="radio-card-desc">Masih tahap penjajakan, belum ada komitmen</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="field" id="field-urgency-reason">
+        <div class="field-label">
+          <label for="urgency-reason">Kenapa sekarang? Apa trigger-nya?</label>
+          <span class="badge badge-required">Wajib</span>
+        </div>
+        <textarea id="urgency-reason" rows="3" placeholder="Contoh: Ada target dari direksi untuk efisiensi operasional 20% di Q3. Volume PO naik 3x lipat sejak ekspansi ke 3 kota baru dan sistem manual sudah tidak bisa handle. Audit internal juga menemukan risiko compliance dari proses approval yang tidak terdokumentasi..."></textarea>
+        <div class="field-hint">Apa konteks bisnis yang membuat ini jadi prioritas sekarang? Ini akan masuk ke Executive Summary BRD.</div>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-secondary" onclick="goToStep(3)">
+          <span class="btn-arrow-back">←</span> Kembali
+        </button>
+        <button class="btn btn-primary" onclick="goToStep(5)" id="btn-generate">
+          Generate BRD Preview <span class="btn-arrow">→</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ════════ STEP 5: Results ════════ -->
+    <div class="step-section" id="step-5">
+
+      <!-- Loading state -->
+      <div class="loading-state" id="loading-state">
+        <div class="spinner"></div>
+        <div class="loading-text">Menyusun analisis BRD...</div>
+        <div class="loading-subtext">Mengidentifikasi gap dan menyusun reframings</div>
+      </div>
+
+      <!-- Error state -->
+      <div class="error-state" id="error-state" style="display:none;">
+        <div class="error-icon">⚠️</div>
+        <div class="error-title">Terjadi kesalahan</div>
+        <div class="error-desc">Tidak bisa generate analisis saat ini. Silakan coba lagi.</div>
+        <button class="btn btn-primary" onclick="retryGenerate()">Coba Lagi</button>
+      </div>
+
+      <!-- Results content -->
+      <div id="results-content" style="display:none;">
+
+        <div class="results-header">
+          <div class="results-eyebrow">✓ Analisis selesai</div>
+          <div class="results-title">Preview BRD Anda</div>
+          <div class="results-subtitle">Berikut assessment awal berdasarkan input yang Anda berikan.</div>
+        </div>
+
+        <!-- Reframed problem -->
+        <div class="result-block result-block-success">
+          <div class="result-label">Rumusan Masalah — Reframed</div>
+          <div class="result-value" id="res-reframed-problem"></div>
+        </div>
+
+        <div class="section-divider"><span>Completeness Check</span></div>
+
+        <!-- Completeness gaps -->
+        <div class="result-block result-block-warning">
+          <div class="result-label">Ini yang IT akan tanyakan balik ke lo</div>
+          <ul class="gap-list" id="res-gaps"></ul>
+        </div>
+
+        <div class="section-divider"><span>BRD Maturity</span></div>
+
+        <!-- Maturity indicator -->
+        <div class="result-block">
+          <div class="result-label">BRD Maturity Indicator</div>
+          <div class="maturity-indicator">
+            <span class="maturity-badge" id="res-maturity-badge"></span>
+            <span class="result-value" id="res-maturity-reasoning" style="font-size:13px;"></span>
+          </div>
+        </div>
+
+        <div class="section-divider"><span>Trade-off Assessment</span></div>
+
+        <!-- Trade-offs -->
+        <div class="result-label" style="margin-bottom:10px;">Kalau BRD ini dikirim sekarang vs. kalau gap di-address dulu</div>
+        <div class="tradeoff-grid">
+          <div class="tradeoff-col tradeoff-col-dim">
+            <div class="tradeoff-col-title">Kirim sekarang</div>
+            <div id="res-tradeoff-now"></div>
+          </div>
+          <div class="tradeoff-col tradeoff-col-highlight">
+            <div class="tradeoff-col-title">Setelah gap di-address</div>
+            <div id="res-tradeoff-after"></div>
+          </div>
+        </div>
+
+        <!-- CTA -->
+        <div class="cta-section">
+          <div class="cta-label">Langkah berikutnya</div>
+          <div class="cta-heading">Dapatkan BRD lengkap, gratis</div>
+          <div class="cta-desc">BRD yang siap di-forward ke IT team — dengan Executive Summary, Functional Requirements yang sudah distrukturkan, Stakeholder Map, dan Open Items untuk follow-up.</div>
+          <div class="cta-stack">
+            <button class="btn btn-accent" onclick="openEmailModal()">
+              Dapatkan BRD lengkap — gratis <span class="btn-arrow">→</span>
+            </button>
+            <button class="btn-link" onclick="openDiscoveryCall()">Diskusi langsung dengan konsultan Labtek →</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div><!-- /card -->
+
+  <div class="step-progress" id="progress-text">Langkah 1 dari 4</div>
+
+</div><!-- /layout -->
+
+<!-- ═══════════════════════════════════════ EMAIL MODAL ═══ -->
+<div class="modal-overlay" id="email-modal">
+  <div class="modal-card">
+    <button class="modal-close" onclick="closeEmailModal()">×</button>
+
+    <!-- Form state -->
+    <div id="modal-form-state">
+      <div class="modal-eyebrow">BRD Builder — Labtek Indie</div>
+      <div class="modal-title">BRD lo siap dikirim</div>
+      <div class="modal-desc">Isi data berikut dan BRD lengkap akan langsung di-download — siap di-forward ke IT team atau dipresentasikan ke atasan.</div>
+
+      <div class="modal-form">
+        <input type="text" id="modal-nama" placeholder="Nama lengkap">
+        <input type="email" id="modal-email" placeholder="Email kantor">
+        <input type="text" id="modal-perusahaan" placeholder="Nama perusahaan">
+        <input type="text" id="modal-role" placeholder="Role / Jabatan">
+        <button class="btn btn-accent" onclick="submitEmail()">Download BRD (PDF) →</button>
+        <div class="modal-privacy">🔒 Data Anda aman. Tidak akan disebarkan ke pihak ketiga.</div>
+      </div>
+    </div>
+
+    <!-- Success state -->
+    <div class="modal-success" id="modal-success-state">
+      <div class="success-icon">✓</div>
+      <div class="success-title">BRD berhasil di-generate!</div>
+      <div class="success-desc">PDF BRD Anda sedang diunduh. Simpan dan forward langsung ke IT team Anda.</div>
+      <div class="success-actions">
+        <button class="btn btn-accent" onclick="redownloadPDF()">Download Ulang PDF →</button>
+        <button class="btn-link" onclick="openDiscoveryCall()">Mau dibantu lebih lanjut? Diskusi dengan konsultan Labtek →</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ PDF TEMPLATE ═══ -->
+<div id="pdf-template">
+  <div class="pdf-header">
+    <div>
+      <div class="pdf-doc-type">Business Requirements Document</div>
+      <div class="pdf-doc-title" id="pdf-title">BRD</div>
+    </div>
+    <div class="pdf-meta-right">
+      <div><strong>Disiapkan oleh:</strong> <span id="pdf-author">—</span></div>
+      <div><strong>Perusahaan:</strong> <span id="pdf-company">—</span></div>
+      <div><strong>Tanggal:</strong> <span id="pdf-date">—</span></div>
+      <div><strong>Versi:</strong> 1.0 (Draft)</div>
+    </div>
+  </div>
+
+  <div class="pdf-meta-table">
+    <div class="pdf-meta-item">
+      <label>Status</label>
+      <span id="pdf-status">Draft</span>
+    </div>
+    <div class="pdf-meta-item">
+      <label>BRD Maturity</label>
+      <span id="pdf-maturity">—</span>
+    </div>
+    <div class="pdf-meta-item">
+      <label>Sponsor</label>
+      <span id="pdf-sponsor">—</span>
+    </div>
+    <div class="pdf-meta-item">
+      <label>Role</label>
+      <span id="pdf-role">—</span>
+    </div>
+  </div>
+
+  <div class="pdf-section">
+    <div class="pdf-section-title"><span class="pdf-section-number">1.</span>Executive Summary</div>
+    <p class="pdf-para" id="pdf-exec-summary"></p>
+  </div>
+
+  <div class="pdf-section">
+    <div class="pdf-section-title"><span class="pdf-section-number">2.</span>Problem Statement</div>
+    <p class="pdf-para" id="pdf-problem-statement"></p>
+  </div>
+
+  <div class="pdf-section">
+    <div class="pdf-section-title"><span class="pdf-section-number">3.</span>Business Objectives</div>
+    <ul class="pdf-list" id="pdf-objectives"></ul>
+  </div>
+
+  <div class="pdf-section">
+    <div class="pdf-section-title"><span class="pdf-section-number">4.</span>Scope</div>
+    <p class="pdf-para" style="font-weight:600; margin-bottom:6px;">In Scope</p>
+    <ul class="pdf-list" id="pdf-scope-in"></ul>
+    <p class="pdf-para" style="font-weight:600; margin-top:12px; margin-bottom:6px;">Out of Scope</p>
+    <ul class="pdf-list" id="pdf-scope-out"></ul>
+  </div>
+
+  <div class="pdf-section">
+    <div class="pdf-section-title"><span class="pdf-section-number">5.</span>Stakeholder Map</div>
+    <table class="pdf-table">
+      <thead>
+        <tr>
+          <th>Role / Pihak</th>
+          <th>Keterlibatan</th>
+          <th>Dampak</th>
+        </tr>
+      </thead>
+      <tbody id="pdf-stakeholders"></tbody>
+    </table>
+  </div>
+
+  <div class="pdf-section">
+    <div class="pdf-section-title"><span class="pdf-section-number">6.</span>Functional Requirements</div>
+    <table class="pdf-table">
+      <thead>
+        <tr>
+          <th style="width:70px;">ID</th>
+          <th>Deskripsi Requirement</th>
+          <th style="width:70px;">Prioritas</th>
+        </tr>
+      </thead>
+      <tbody id="pdf-requirements"></tbody>
+    </table>
+  </div>
+
+  <div class="pdf-section">
+    <div class="pdf-section-title"><span class="pdf-section-number">7.</span>Constraints</div>
+    <ul class="pdf-list" id="pdf-constraints"></ul>
+  </div>
+
+  <div class="pdf-section">
+    <div class="pdf-section-title"><span class="pdf-section-number">8.</span>Success Metrics</div>
+    <table class="pdf-table">
+      <thead>
+        <tr>
+          <th>Metrik</th>
+          <th>Target</th>
+          <th>Cara Pengukuran</th>
+        </tr>
+      </thead>
+      <tbody id="pdf-metrics"></tbody>
+    </table>
+  </div>
+
+  <div class="pdf-section">
+    <div class="pdf-section-title"><span class="pdf-section-number">9.</span>Open Items</div>
+    <p class="pdf-para" style="font-size:11px; color:#666; margin-bottom:10px;">Item-item berikut perlu dijawab sebelum IT dapat memulai development. Gunakan ini sebagai checklist follow-up.</p>
+    <div class="pdf-open-items" id="pdf-open-items"></div>
+  </div>
+
+  <div class="pdf-footer">
+    <div class="pdf-footer-brand">Labtek Indie</div>
+    <div class="pdf-footer-desc">Kami membantu enterprise Indonesia menjembatani gap antara business intent dan technical execution — mulai dari structured problem framing, BRD, hingga solution design yang realistis dan tervalidasi.</div>
+    <div class="pdf-footer-cta">Butuh bantuan dari problem sampai BRD yang tervalidasi? Hubungi tim Labtek: <strong>labtek.id/konsultasi</strong></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ SCRIPT ═══ -->
+<script>
+// ─── State ───────────────────────────────────────────────
+const state = {
+  currentStep: 1,
+  totalInputSteps: 4,
+  formData: {},
+  aiResponse: null,
+  emailData: null,
+};
+
+// ─── Step Validation Config ───────────────────────────────
+const stepRequired = {
+  1: [
+    { id: 'problem-statement', msg: 'Deskripsi masalah bisnis wajib diisi.' },
+    { id: 'problem-scenario', msg: 'Skenario konkret wajib diisi.' },
+    { id: 'previous-attempts', msg: 'Ceritakan apa yang sudah pernah dicoba.' },
+  ],
+  2: [
+    { id: 'solution-vision', msg: 'Bayangan solusi ideal wajib diisi.' },
+    { id: 'user-story', msg: 'User story wajib diisi.' },
+    { id: 'success-indicators', msg: 'Indikator keberhasilan wajib diisi.' },
+  ],
+  3: [
+    { id: 'stakeholders', msg: 'Informasi stakeholder wajib diisi.' },
+    { radioGroup: 'constraint-timeline', fieldId: 'field-constraint-timeline', msg: 'Pilih target timeline.' },
+    { radioGroup: 'constraint-budget', fieldId: 'field-constraint-budget', msg: 'Pilih estimasi budget.' },
+  ],
+  4: [
+    { radioGroup: 'urgency-level', fieldId: 'field-urgency-level', msg: 'Pilih tingkat urgensi.' },
+    { id: 'urgency-reason', msg: 'Alasan timing wajib diisi.' },
+  ],
+};
+
+// ─── Validation ───────────────────────────────────────────
+function validateStep(step) {
+  const rules = stepRequired[step];
+  if (!rules) return true;
+  let valid = true;
+
+  // Clear previous errors in this step
+  document.querySelectorAll(`#step-${step} .field-has-error`).forEach(el => el.classList.remove('field-has-error'));
+  document.querySelectorAll(`#step-${step} .field-error-msg`).forEach(el => el.remove());
+
+  rules.forEach(rule => {
+    if (rule.radioGroup) {
+      const checked = document.querySelector(`input[name="${rule.radioGroup}"]:checked`);
+      if (!checked) {
+        valid = false;
+        const fieldEl = document.getElementById(rule.fieldId);
+        if (fieldEl) {
+          fieldEl.classList.add('field-has-error');
+          const msg = document.createElement('div');
+          msg.className = 'field-error-msg';
+          msg.textContent = rule.msg;
+          fieldEl.appendChild(msg);
+        }
+      }
+    } else {
+      const el = document.getElementById(rule.id);
+      if (el && el.value.trim() === '') {
+        valid = false;
+        const fieldWrapper = el.closest('.field');
+        if (fieldWrapper) {
+          fieldWrapper.classList.add('field-has-error');
+          const msg = document.createElement('div');
+          msg.className = 'field-error-msg';
+          msg.textContent = rule.msg;
+          fieldWrapper.appendChild(msg);
+        }
+      }
+    }
+  });
+
+  return valid;
+}
+
+// ─── Collect form data from a step ───────────────────────
+function collectStepData(step) {
+  const getVal = (id) => {
+    const el = document.getElementById(id);
+    return el ? el.value.trim() : '';
+  };
+  const getRadio = (name) => {
+    const el = document.querySelector(`input[name="${name}"]:checked`);
+    return el ? el.value : '';
+  };
+
+  switch (step) {
+    case 1:
+      state.formData.problemStatement = getVal('problem-statement');
+      state.formData.problemScenario = getVal('problem-scenario');
+      state.formData.previousAttempts = getVal('previous-attempts');
+      state.formData.currentTools = getVal('current-tools');
+      break;
+    case 2:
+      state.formData.solutionVision = getVal('solution-vision');
+      state.formData.userStory = getVal('user-story');
+      state.formData.successIndicators = getVal('success-indicators');
+      break;
+    case 3:
+      state.formData.stakeholders = getVal('stakeholders');
+      state.formData.stakeholdersSponsor = getVal('stakeholders-sponsor');
+      state.formData.constraintTimeline = getRadio('constraint-timeline');
+      state.formData.constraintBudget = getRadio('constraint-budget');
+      state.formData.constraintSystems = getVal('constraint-systems');
+      break;
+    case 4:
+      state.formData.urgencyLevel = getRadio('urgency-level');
+      state.formData.urgencyReason = getVal('urgency-reason');
+      break;
+  }
+}
+
+// ─── Navigation ───────────────────────────────────────────
+function goToStep(targetStep) {
+  if (targetStep > state.currentStep) {
+    collectStepData(state.currentStep);
+    if (!validateStep(state.currentStep)) return;
+  }
+
+  document.getElementById(`step-${state.currentStep}`).classList.remove('active');
+  document.getElementById(`step-${targetStep}`).classList.add('active');
+
+  // Update stepper dots
+  for (let i = 1; i <= 5; i++) {
+    const dot = document.getElementById(`dot-${i}`);
+    const label = document.getElementById(`label-${i}`);
+    dot.classList.remove('active', 'complete');
+    label.classList.remove('active', 'complete');
+
+    if (i < targetStep) {
+      dot.classList.add('complete');
+      dot.textContent = '✓';
+      label.classList.add('complete');
+    } else if (i === targetStep) {
+      dot.classList.add('active');
+      dot.textContent = i;
+      label.classList.add('active');
+    } else {
+      dot.textContent = i;
+    }
+  }
+
+  // Update connector lines
+  for (let i = 1; i <= 4; i++) {
+    const line = document.getElementById(`line-${i}`);
+    if (i < targetStep) {
+      line.classList.add('complete');
+    } else {
+      line.classList.remove('complete');
+    }
+  }
+
+  // Update progress text
+  const progress = document.getElementById('progress-text');
+  if (targetStep <= 4) {
+    progress.textContent = `Langkah ${targetStep} dari 4`;
+    progress.style.display = 'block';
+  } else {
+    progress.style.display = 'none';
+  }
+
+  state.currentStep = targetStep;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  if (targetStep === 5) {
+    generateBRD();
+  }
+}
+
+// ─── Radio card selection ─────────────────────────────────
+function selectRadio(card) {
+  const name = card.querySelector('input[type="radio"]').name;
+  document.querySelectorAll(`input[name="${name}"]`).forEach(r => {
+    r.closest('.radio-card').classList.remove('selected');
+  });
+  card.classList.add('selected');
+  card.querySelector('input').checked = true;
+
+  // Clear any validation error for this group
+  const fieldEl = card.closest('.field');
+  if (fieldEl) {
+    fieldEl.classList.remove('field-has-error');
+    fieldEl.querySelectorAll('.field-error-msg').forEach(el => el.remove());
+  }
+}
+
+// ─── AI Generation (hardcoded MVP) ───────────────────────
+function generateBRD() {
+  document.getElementById('loading-state').style.display = 'block';
+  document.getElementById('error-state').style.display = 'none';
+  document.getElementById('results-content').style.display = 'none';
+
+  // Simulate API latency, then return hardcoded sample response
+  setTimeout(() => {
+    state.aiResponse = buildSampleResponse();
+    renderResults(state.aiResponse);
+  }, 2200);
+}
+
+function retryGenerate() {
+  document.getElementById('error-state').style.display = 'none';
+  generateBRD();
+}
+
+// ─── Helpers ──────────────────────────────────────────────
+function splitToItems(text) {
+  if (!text) return [];
+  return text.split(/\n+/)
+    .map(l => l.replace(/^[\d]+[\.\)]\s*/, '').trim())
+    .filter(l => l.length > 0);
+}
+
+function parseStakeholders(text) {
+  if (!text) return [];
+  // Split by newlines first, then commas for inline lists
+  const lines = text.split(/\n+/).filter(l => l.trim());
+  if (lines.length > 1) return lines.map(l => l.trim());
+  return text.split(/,(?=[^,]*\()/).map(l => l.trim()).filter(l => l);
+}
+
+function generateMaturity(fd) {
+  const optional = [fd.currentTools, fd.stakeholdersSponsor, fd.constraintSystems];
+  const filled = optional.filter(f => f && f.trim()).length;
+  if (filled === 3) {
+    return {
+      level: 'Ready',
+      reasoning: 'BRD ini lengkap dengan konteks masalah, solusi, stakeholder, dan semua informasi pendukung. IT dapat langsung memberikan estimasi dan mulai scoping tanpa perlu banyak clarifying questions.',
+    };
+  } else if (filled >= 1) {
+    return {
+      level: 'Developing',
+      reasoning: 'BRD ini sudah mencakup problem context, solution intent, dan stakeholder overview yang memadai — cukup untuk membuka diskusi awal dengan IT. Beberapa detail teknis dan constraint masih perlu dilengkapi sebelum IT dapat memberikan estimasi yang akurat.',
+    };
+  } else {
+    return {
+      level: 'Incomplete',
+      reasoning: 'BRD ini memiliki fondasi yang baik dari sisi problem dan solusi, namun belum ada informasi tentang sistem existing, sponsor, atau batasan teknis. IT akan memerlukan banyak clarifying questions sebelum bisa memberikan proposal yang meaningful.',
+    };
+  }
+}
+
+function generateGaps(fd) {
+  const gaps = [];
+
+  if (!fd.currentTools && !fd.constraintSystems) {
+    gaps.push({
+      gap: 'Integration scope belum jelas — sistem existing tidak disebutkan',
+      question: 'Tools apa yang saat ini digunakan tim? Apakah ada sistem (ERP, CRM, AD, email) yang harus diintegrasikan? Tanpa ini, IT tidak bisa menilai kompleksitas teknis dan akan over-estimate untuk safety.',
+    });
+  } else if (!fd.constraintSystems) {
+    gaps.push({
+      gap: 'Detail integrasi dan batasan teknis belum terdefinisi',
+      question: 'Seberapa dalam integrasi yang dibutuhkan dengan sistem existing? Real-time sync, batch, atau cukup notifikasi? Apakah ada batasan compliance atau regulasi (on-premise, data residency)? Ini menentukan arsitektur dan timeline secara signifikan.',
+    });
+  }
+
+  if (!fd.stakeholdersSponsor) {
+    gaps.push({
+      gap: 'Decision maker belum teridentifikasi',
+      question: 'Siapa yang akan approve budget dan sign-off keputusan akhir? Tanpa sponsor yang jelas, IT sulit memprioritaskan dan proses approval anggaran berpotensi lambat atau terputus di tengah jalan.',
+    });
+  }
+
+  gaps.push({
+    gap: 'Volume dan frekuensi transaksi belum dispesifikasikan',
+    question: 'Berapa jumlah request/transaksi per hari atau bulan? Berapa concurrent users yang diantisipasi? Ini kritis untuk menentukan arsitektur sistem yang tepat — beda volume bisa beda 10x dalam biaya infrastruktur.',
+  });
+
+  gaps.push({
+    gap: 'Non-functional requirements (NFR) belum disebutkan',
+    question: 'Apa ekspektasi uptime, response time, dan keamanan data? Apakah ada requirement enkripsi, access control, atau audit log spesifik? NFR yang tidak terdefinisi sering menjadi sumber rework mahal di akhir project.',
+  });
+
+  gaps.push({
+    gap: 'Rencana change management dan training belum disinggung',
+    question: 'Siapa yang bertanggung jawab untuk onboarding pengguna? Ada anggaran dan waktu khusus untuk training? Adopsi sistem baru sering gagal bukan karena teknologinya tapi karena change management yang tidak dipersiapkan.',
+  });
+
+  return gaps.slice(0, 5);
+}
+
+function buildSampleResponse() {
+  const fd = state.formData;
+
+  const urgencyLabel = {
+    'sangat-mendesak': 'sangat mendesak',
+    'penting-tidak-urgent': 'penting namun tidak urgent',
+    'baru-eksplorasi': 'baru tahap eksplorasi',
+  }[fd.urgencyLevel] || 'tidak ditentukan';
+
+  const timelineLabel = {
+    'kurang-1-bulan': 'di bawah 1 bulan',
+    '1-3-bulan': '1–3 bulan',
+    '3-6-bulan': '3–6 bulan',
+    'fleksibel': 'fleksibel',
+  }[fd.constraintTimeline] || 'belum ditentukan';
+
+  const budgetLabel = {
+    'under-50jt': 'di bawah Rp 50 juta',
+    '50-200jt': 'Rp 50–200 juta',
+    '200-500jt': 'Rp 200–500 juta',
+    'above-500jt': 'di atas Rp 500 juta',
+    'belum-ditentukan': 'belum ditentukan',
+  }[fd.constraintBudget] || 'belum ditentukan';
+
+  const maturity = generateMaturity(fd);
+  const gaps = generateGaps(fd);
+
+  // ── Reframed problem: use user's actual words ────────────
+  const reframedProblem = `${fd.problemStatement} — Kondisi ini bersifat ${urgencyLabel}, dengan target implementasi ${timelineLabel} dan estimasi investasi ${budgetLabel}. ${fd.urgencyReason ? `Trigger utama: ${fd.urgencyReason.split('.')[0]}.` : ''}`;
+
+  // ── Tradeoffs adjusted to maturity ────────────────────────
+  const tradeoffNow = maturity.level === 'Ready'
+    ? [
+        'IT mungkin masih punya beberapa clarifying questions tentang NFR dan detail teknis',
+        'Estimasi effort bisa sedikit conservative karena beberapa asumsi masih perlu dikonfirmasi',
+        'Dokumen sudah cukup kuat untuk membuka diskusi solutioning yang produktif',
+      ]
+    : [
+        'IT akan respond dengan banyak clarifying questions — meeting awal habis untuk klarifikasi bukan solutioning',
+        'Estimasi effort dan timeline dari IT akan memiliki range yang sangat lebar dan kemungkinan over-estimated',
+        'Risiko scope creep di tengah jalan karena gaps baru ditemukan saat development sudah berjalan',
+      ];
+
+  const tradeoffAfter = [
+    'IT dapat memberikan estimasi yang lebih akurat dan confident dari pertemuan pertama',
+    'Mengurangi rework dan perubahan scope di tengah project yang biasanya costly',
+    'Proses approval budget lebih mulus karena proposal dari IT lebih konkret dan tervalidasi',
+  ];
+
+  // ── Full BRD sections ─────────────────────────────────────
+  const executiveSummary = `Dokumen ini menguraikan kebutuhan bisnis untuk pengembangan solusi digital yang bertujuan menyelesaikan: ${fd.problemStatement} ${fd.urgencyReason ? `Inisiatif ini diprioritaskan karena: ${fd.urgencyReason}` : ''} Target implementasi ${timelineLabel} dengan estimasi investasi ${budgetLabel}.`;
+
+  const problemStatementText = `${fd.problemStatement}\n\nSkenario konkret: ${fd.problemScenario}\n\nUpaya yang sudah pernah dilakukan: ${fd.previousAttempts}${fd.currentTools ? `\n\nSistem yang saat ini digunakan: ${fd.currentTools}` : ''}`;
+
+  // Derive objectives from successIndicators
+  const successLines = splitToItems(fd.successIndicators);
+  const businessObjectives = successLines.length > 0
+    ? successLines.map(line => `Target: ${line}`)
+    : [
+        'Mengurangi waktu siklus proses end-to-end minimal 60% melalui otomasi alur kerja yang saat ini berjalan manual',
+        'Meningkatkan visibilitas dan transparansi status proses secara real-time bagi seluruh pihak yang terlibat',
+        'Memastikan seluruh transaksi dan keputusan terdokumentasi dalam audit trail yang dapat dipertanggungjawabkan',
+        'Mengurangi error dan miskomunikasi akibat proses manual melalui validasi dan notifikasi otomatis',
+      ];
+
+  // Derive scope from solutionVision
+  const visionLines = splitToItems(fd.solutionVision);
+  const scopeInScope = visionLines.length > 0
+    ? visionLines
+    : [
+        'Digitalisasi dan otomasi proses yang saat ini berjalan secara manual',
+        'Workflow approval multi-level dengan notifikasi digital ke seluruh pihak yang terlibat',
+        'Dashboard status real-time untuk pemohon, approver, dan tim terkait',
+        'Audit trail lengkap dan laporan periodik untuk keperluan compliance dan monitoring performa',
+        'Modul delegasi/substitusi untuk kondisi approver tidak tersedia (cuti, perjalanan dinas)',
+      ];
+
+  const scopeOutOfScope = [
+    'Perubahan pada proses bisnis di luar workflow yang diidentifikasi dalam BRD ini',
+    'Migrasi data historis dari sistem lama (kecuali disepakati kemudian)',
+    'Pengembangan fitur tambahan di luar yang didefinisikan dalam dokumen ini',
+    'Perubahan pada sistem downstream yang tidak terkait langsung',
+  ];
+
+  // Parse stakeholders
+  const stakeholderLines = parseStakeholders(fd.stakeholders);
+  const stakeholderMap = stakeholderLines.length > 0
+    ? stakeholderLines.map((s, i) => ({
+        role: s,
+        involvement: i === 0 ? 'Terdampak langsung, pengguna utama sistem' : 'Terdampak, perlu dilibatkan dalam UAT dan rollout',
+        impact: 'Langsung — proses kerja sehari-hari berubah',
+      }))
+    : [{ role: 'Pengguna sistem', involvement: 'Pengguna utama', impact: 'Langsung' }];
+  stakeholderMap.push({
+    role: 'IT Team',
+    involvement: 'Perancang dan implementor solusi teknis, support pasca go-live',
+    impact: 'Langsung — menanggung beban pengembangan dan maintenance',
+  });
+
+  // Derive FRs from userStory
+  const storyLines = splitToItems(fd.userStory);
+  const baseFRs = [
+    { id: 'FR-001', description: 'Sistem harus memungkinkan pengguna untuk submit dan track request secara digital melalui antarmuka web dan mobile', priority: 'High' },
+    { id: 'FR-002', description: 'Sistem harus mendukung workflow approval dengan notifikasi digital ketika ada request yang memerlukan tindakan', priority: 'High' },
+    { id: 'FR-003', description: 'Pengguna harus dapat melihat status request secara real-time tanpa perlu menghubungi pihak lain secara manual', priority: 'High' },
+    { id: 'FR-004', description: 'Sistem harus mencatat seluruh aktivitas dalam audit log yang dapat dipertanggungjawabkan untuk keperluan compliance', priority: 'High' },
+    { id: 'FR-005', description: 'Sistem harus dapat diakses dari perangkat mobile untuk memastikan fleksibilitas bagi approver dan pengguna lapangan', priority: 'Medium' },
+    { id: 'FR-006', description: fd.currentTools ? `Sistem harus dapat diintegrasikan dengan tools existing yang saat ini digunakan: ${fd.currentTools}` : 'Sistem harus dapat diintegrasikan dengan sistem existing yang relevan untuk menghindari duplikasi data entry', priority: 'Medium' },
+    { id: 'FR-007', description: 'Sistem harus menyediakan dashboard dan laporan untuk monitoring performa proses (cycle time, bottleneck analysis)', priority: 'Medium' },
+    { id: 'FR-008', description: 'Sistem harus mendukung delegasi/substitusi ketika pengguna kunci tidak tersedia (misal: cuti, perjalanan dinas)', priority: 'Low' },
+  ];
+  if (storyLines.length > 0) {
+    baseFRs.unshift({ id: 'FR-000', description: `User story utama: "${storyLines[0]}"`, priority: 'High' });
+    baseFRs.forEach((fr, i) => { fr.id = `FR-${String(i).padStart(3, '0')}`; });
+  }
+  const functionalRequirements = baseFRs;
+
+  // Constraints
+  const constraints = [
+    `Timeline implementasi: ${timelineLabel}`,
+    `Estimasi budget: ${budgetLabel}`,
+    fd.constraintSystems
+      ? `Sistem & batasan teknis: ${fd.constraintSystems}`
+      : 'Batasan teknis, compliance, dan integrasi sistem existing perlu dikonfirmasi lebih lanjut bersama IT',
+  ];
+
+  // Success metrics from successIndicators
+  const metricLines = splitToItems(fd.successIndicators);
+  const successMetrics = metricLines.length > 0
+    ? metricLines.map((line, i) => ({
+        metric: line,
+        target: 'Target spesifik disepakati bersama IT dan business owner',
+        measurement: 'Metode pengukuran dikonfirmasi saat solutioning dengan IT',
+      }))
+    : [
+        { metric: 'Cycle time proses end-to-end', target: 'Berkurang minimal 60% dari baseline saat ini', measurement: 'Timestamp submit hingga final approval di sistem' },
+        { metric: 'Tingkat adopsi pengguna', target: '> 80% pengguna aktif dalam 60 hari pertama go-live', measurement: 'Persentase request yang masuk via sistem vs total request' },
+        { metric: 'Error rate / request salah jalur', target: 'Berkurang > 90% vs kondisi manual saat ini', measurement: 'Jumlah request yang perlu diulang atau diroutingkan ulang' },
+        { metric: 'Ketersediaan sistem (uptime)', target: '> 99% pada jam kerja (08.00–18.00 WIB)', measurement: 'Monitoring otomatis, dilaporkan dalam weekly report IT' },
+      ];
+
+  // Open items — generated from empty optionals + essentials
+  const openItems = [];
+  if (!fd.currentTools && !fd.constraintSystems) openItems.push('Pemetaan sistem existing yang perlu diintegrasikan: protokol API/data, format pertukaran data, frekuensi sinkronisasi, dan siapa PIC teknis di sisi masing-masing sistem');
+  if (!fd.stakeholdersSponsor) openItems.push('Konfirmasi sponsor, decision maker, dan escalation path yang jelas — siapa yang berwenang approve perubahan scope dan budget di tengah project');
+  if (!fd.constraintSystems) openItems.push('Definisi batasan teknis dan compliance: on-premise vs cloud, data residency requirements, regulasi yang berlaku (misal: PDPA, regulasi sektoral), dan standar keamanan yang wajib dipenuhi');
+  openItems.push('Detail approval matrix: jumlah level approval, threshold nilai per level, kondisi eskalasi otomatis, mekanisme delegasi, dan SLA response per level approver');
+  openItems.push('Non-functional requirements (NFR): jumlah concurrent users yang harus ditangani, response time SLA per tipe transaksi, uptime target, data retention policy, dan disaster recovery objective');
+  openItems.push('Rencana change management dan user adoption: siapa penanggungjawab training, berapa budget dan waktu yang dialokasikan, bagaimana rollout dilakukan (big bang vs phased), dan strategi komunikasi ke pengguna');
+  openItems.push('Persyaratan keamanan data dan akses: skema enkripsi data at-rest dan in-transit, access control policy (RBAC/ABAC), audit logging policy, dan mekanisme review akses berkala');
+
+  return {
+    preview: {
+      reframedProblem,
+      completenessGaps: gaps,
+      maturity,
+      tradeoffs: { sendNow: tradeoffNow, addressFirst: tradeoffAfter },
+    },
+    fullBRD: {
+      executiveSummary,
+      problemStatement: problemStatementText,
+      businessObjectives,
+      scope: { inScope: scopeInScope, outOfScope: scopeOutOfScope },
+      stakeholderMap,
+      functionalRequirements,
+      constraints,
+      successMetrics,
+      openItems,
+    },
+  };
+}
+
+// ─── Render results to DOM ────────────────────────────────
+function renderResults(response) {
+  document.getElementById('loading-state').style.display = 'none';
+
+  // Reframed problem
+  document.getElementById('res-reframed-problem').textContent = response.preview.reframedProblem;
+
+  // Gaps
+  const gapList = document.getElementById('res-gaps');
+  gapList.innerHTML = '';
+  response.preview.completenessGaps.forEach((gap, i) => {
+    const li = document.createElement('li');
+    li.className = 'gap-item';
+    li.innerHTML = `<strong><span class="gap-number">${i + 1}</span>${gap.gap}</strong>${gap.question}`;
+    gapList.appendChild(li);
+  });
+
+  // Maturity
+  const badge = document.getElementById('res-maturity-badge');
+  const level = response.preview.maturity.level;
+  const levelMap = {
+    'Incomplete': { cls: 'maturity-incomplete', label: 'Incomplete' },
+    'Developing': { cls: 'maturity-developing', label: 'Developing' },
+    'Ready': { cls: 'maturity-ready', label: 'Ready to Send' },
+  };
+  const lm = levelMap[level] || levelMap['Developing'];
+  badge.className = `maturity-badge ${lm.cls}`;
+  badge.textContent = lm.label;
+  document.getElementById('res-maturity-reasoning').textContent = response.preview.maturity.reasoning;
+
+  // Trade-offs: send now
+  const tradeoffNow = document.getElementById('res-tradeoff-now');
+  tradeoffNow.innerHTML = '';
+  response.preview.tradeoffs.sendNow.forEach(point => {
+    const div = document.createElement('div');
+    div.className = 'tradeoff-item';
+    div.innerHTML = `<span class="tradeoff-item-icon">⚠</span><span>${point}</span>`;
+    tradeoffNow.appendChild(div);
+  });
+
+  // Trade-offs: address first
+  const tradeoffAfter = document.getElementById('res-tradeoff-after');
+  tradeoffAfter.innerHTML = '';
+  response.preview.tradeoffs.addressFirst.forEach(point => {
+    const div = document.createElement('div');
+    div.className = 'tradeoff-item';
+    div.innerHTML = `<span class="tradeoff-item-icon">✓</span><span>${point}</span>`;
+    tradeoffAfter.appendChild(div);
+  });
+
+  document.getElementById('results-content').style.display = 'block';
+}
+
+// ─── Modal ────────────────────────────────────────────────
+function openEmailModal() {
+  document.getElementById('email-modal').classList.add('active');
+  document.getElementById('modal-form-state').style.display = 'block';
+  document.getElementById('modal-success-state').classList.remove('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeEmailModal() {
+  document.getElementById('email-modal').classList.remove('active');
+  document.body.style.overflow = '';
+}
+
+// Close modal on backdrop click
+document.getElementById('email-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeEmailModal();
+});
+
+function submitEmail() {
+  const nama = document.getElementById('modal-nama').value.trim();
+  const email = document.getElementById('modal-email').value.trim();
+  const perusahaan = document.getElementById('modal-perusahaan').value.trim();
+  const role = document.getElementById('modal-role').value.trim();
+
+  // Clear previous errors
+  ['modal-nama','modal-email','modal-perusahaan','modal-role'].forEach(id => {
+    document.getElementById(id).classList.remove('input-error');
+  });
+
+  let valid = true;
+  if (!nama) { document.getElementById('modal-nama').classList.add('input-error'); valid = false; }
+  if (!email || !email.includes('@')) { document.getElementById('modal-email').classList.add('input-error'); valid = false; }
+  if (!perusahaan) { document.getElementById('modal-perusahaan').classList.add('input-error'); valid = false; }
+  if (!role) { document.getElementById('modal-role').classList.add('input-error'); valid = false; }
+
+  if (!valid) return;
+
+  state.emailData = { nama, email, perusahaan, role };
+
+  // Show success state
+  document.getElementById('modal-form-state').style.display = 'none';
+  document.getElementById('modal-success-state').classList.add('active');
+
+  // Download static demo PDF
+  downloadPDF();
+}
+
+function redownloadPDF() {
+  downloadPDF();
+}
+
+function downloadPDF() {
+  const link = document.createElement('a');
+  link.href = 'demo-brd.pdf';
+  link.download = 'BRD-Demo-Labtek.pdf';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+function openDiscoveryCall() {
+  // Placeholder — will be replaced with actual scheduling link
+  alert('Link konsultasi akan segera tersedia. Sementara itu, silakan hubungi kami di labtek.id');
+}
+
+// ─── PDF Generation ───────────────────────────────────────
+function generatePDF() {
+  const brd = state.aiResponse.fullBRD;
+  const ed = state.emailData;
+
+  const today = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+
+  // Populate meta
+  document.getElementById('pdf-title').textContent = `BRD — ${ed.perusahaan}`;
+  document.getElementById('pdf-author').textContent = ed.nama;
+  document.getElementById('pdf-company').textContent = ed.perusahaan;
+  document.getElementById('pdf-date').textContent = today;
+  document.getElementById('pdf-status').textContent = 'Draft — Menunggu Review IT';
+  document.getElementById('pdf-maturity').textContent = state.aiResponse.preview.maturity.level;
+  document.getElementById('pdf-sponsor').textContent = state.formData.stakeholdersSponsor || '—';
+  document.getElementById('pdf-role').textContent = ed.role;
+
+  // Sections
+  document.getElementById('pdf-exec-summary').textContent = brd.executiveSummary;
+  document.getElementById('pdf-problem-statement').textContent = brd.problemStatement;
+
+  // Objectives
+  const obj = document.getElementById('pdf-objectives');
+  obj.innerHTML = '';
+  brd.businessObjectives.forEach(item => {
+    const li = document.createElement('li');
+    li.textContent = item;
+    obj.appendChild(li);
+  });
+
+  // Scope
+  const scopeIn = document.getElementById('pdf-scope-in');
+  scopeIn.innerHTML = '';
+  brd.scope.inScope.forEach(item => {
+    const li = document.createElement('li');
+    li.textContent = item;
+    scopeIn.appendChild(li);
+  });
+  const scopeOut = document.getElementById('pdf-scope-out');
+  scopeOut.innerHTML = '';
+  brd.scope.outOfScope.forEach(item => {
+    const li = document.createElement('li');
+    li.textContent = item;
+    scopeOut.appendChild(li);
+  });
+
+  // Stakeholders
+  const sh = document.getElementById('pdf-stakeholders');
+  sh.innerHTML = '';
+  brd.stakeholderMap.forEach(s => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td><strong>${s.role}</strong></td><td>${s.involvement}</td><td>${s.impact}</td>`;
+    sh.appendChild(tr);
+  });
+
+  // Requirements
+  const req = document.getElementById('pdf-requirements');
+  req.innerHTML = '';
+  brd.functionalRequirements.forEach(r => {
+    const priorityMap = { High: 'pdf-badge-high', Medium: 'pdf-badge-medium', Low: 'pdf-badge-low' };
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td><strong>${r.id}</strong></td><td>${r.description}</td><td><span class="pdf-badge ${priorityMap[r.priority] || ''}">${r.priority}</span></td>`;
+    req.appendChild(tr);
+  });
+
+  // Constraints
+  const cons = document.getElementById('pdf-constraints');
+  cons.innerHTML = '';
+  brd.constraints.forEach(c => {
+    const li = document.createElement('li');
+    li.textContent = c;
+    cons.appendChild(li);
+  });
+
+  // Metrics
+  const met = document.getElementById('pdf-metrics');
+  met.innerHTML = '';
+  brd.successMetrics.forEach(m => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${m.metric}</td><td>${m.target}</td><td>${m.measurement}</td>`;
+    met.appendChild(tr);
+  });
+
+  // Open items
+  const oi = document.getElementById('pdf-open-items');
+  oi.innerHTML = '';
+  brd.openItems.forEach((item, i) => {
+    const div = document.createElement('div');
+    div.className = 'pdf-open-item';
+    div.innerHTML = `<strong style="font-family:monospace;font-size:10px;color:#b8860b;">OI-${String(i+1).padStart(2,'0')}</strong> ${item}`;
+    oi.appendChild(div);
+  });
+
+  const template = document.getElementById('pdf-template');
+  const modal = document.getElementById('email-modal');
+
+  // Bring template fully on-screen for html2canvas
+  template.style.position = 'fixed';
+  template.style.left = '0';
+  template.style.top = '0';
+  template.style.zIndex = '99999';
+  template.style.background = 'white';
+  // Temporarily suppress modal + body lock so they don't interfere
+  modal.style.opacity = '0';
+  modal.style.pointerEvents = 'none';
+  document.body.style.overflow = '';
+
+  const filename = `BRD-${ed.perusahaan.replace(/\s+/g, '-')}.pdf`;
+  const opt = {
+    margin: [12, 14, 12, 14],
+    filename: filename,
+    image: { type: 'jpeg', quality: 0.97 },
+    html2canvas: { scale: 2, useCORS: true, logging: false },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    pagebreak: { mode: ['css', 'legacy'] },
+  };
+
+  html2pdf().set(opt).from(template).save().then(() => {
+    // Restore everything
+    template.style.position = 'absolute';
+    template.style.left = '-9999px';
+    template.style.zIndex = '';
+    template.style.background = '';
+    modal.style.opacity = '1';
+    modal.style.pointerEvents = '';
+    document.body.style.overflow = 'hidden';
+  });
+}
+</script>
+</body>
+</html>
