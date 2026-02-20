@@ -862,8 +862,8 @@
   <div class="header">
     <div class="header-eyebrow">Free Tool · Labtek Indie</div>
     <h1>Request Anda sering balik<br>dengan pertanyaan?</h1>
-    <p class="header-descriptor">BRD adalah dokumen spesifikasi yang IT butuhkan sebelum bisa mulai membangun.</p>
-    <p>Masalahnya hampir selalu ada di dokumen. BRD yang tidak spesifik memaksa IT mulai dari asumsi yang salah. Tool ini memandu Anda menyusunnya dari nol — 4 langkah, 10 menit, satu PDF siap kirim ke tim teknis.</p>
+    <p class="header-descriptor">BRD (Business Requirements Document) adalah dokumen spesifikasi yang IT butuhkan sebelum bisa mulai membangun.</p>
+    <p>Masalahnya hampir selalu ada di sana. Kalau spesifikasinya tidak jelas, IT terpaksa mulai dari asumsi yang salah. Tool ini memandu Anda menyusunnya dari nol: 4 langkah, 10 menit, satu PDF siap kirim ke tim teknis.</p>
   </div>
 
   <!-- ── Stepper: 4 input steps + 1 results ── -->
@@ -899,20 +899,20 @@
     <!-- ════════ STEP 1: Masalah & Konteks ════════ -->
     <div class="step-section active" id="step-1">
       <div class="step-title">Masalah & Konteks</div>
-      <div class="step-subtitle">Ceritakan masalahnya dengan bebas — semakin konkret, semakin kuat BRD-nya.</div>
+      <div class="step-subtitle">Ceritakan masalahnya dengan bebas. Semakin konkret, semakin kuat dokumennya.</div>
 
       <div class="field" id="field-problem-statement">
         <div class="field-label">
           <label for="problem-statement">Apa masalah bisnis yang ingin diselesaikan?</label>
           <span class="badge badge-required">Wajib</span>
         </div>
-        <textarea id="problem-statement" rows="4" placeholder="Contoh: Proses approval pengadaan barang kami membutuhkan waktu 5-7 hari kerja karena masih manual — dokumen fisik harus berpindah tangan antar departemen, sering hilang atau tertunda, dan tidak ada visibilitas status approval untuk pemohon..."></textarea>
-        <div class="field-hint">Jelaskan dari perspektif bisnis — dampaknya, siapa yang terkena, dan seberapa sering terjadi.</div>
+        <textarea id="problem-statement" rows="4" placeholder="Contoh: Proses approval pengadaan barang kami membutuhkan waktu 5-7 hari kerja karena masih manual. Dokumen fisik harus berpindah tangan antar departemen, sering hilang atau tertunda, dan tidak ada visibilitas status approval untuk pemohon..."></textarea>
+        <div class="field-hint">Jelaskan dari perspektif bisnis: dampaknya, siapa yang terkena, dan seberapa sering terjadi.</div>
       </div>
 
       <div class="field" id="field-problem-scenario">
         <div class="field-label">
-          <label for="problem-scenario">Ceritakan skenario konkret — kapan masalah ini paling terasa?</label>
+          <label for="problem-scenario">Ceritakan skenario konkret: kapan masalah ini paling terasa?</label>
           <span class="badge badge-required">Wajib</span>
         </div>
         <textarea id="problem-scenario" rows="3" placeholder="Contoh: Setiap awal bulan, tim operasional harus mengajukan 20-30 PO. Rata-rata 40% dari PO ini terlambat diproses karena approval manual, yang menyebabkan keterlambatan pengiriman ke klien dan denda kontrak..."></textarea>
@@ -934,7 +934,7 @@
           <span class="badge badge-optional">Opsional</span>
         </div>
         <textarea id="current-tools" rows="2" placeholder="Contoh: SAP untuk ERP, Microsoft 365, WhatsApp untuk komunikasi, Excel untuk tracking manual..."></textarea>
-        <div class="field-hint">Sistem existing yang relevan — penting untuk IT ketika menilai kompleksitas integrasi.</div>
+        <div class="field-hint">Sistem existing yang relevan, penting untuk IT ketika menilai kompleksitas integrasi.</div>
       </div>
 
       <div class="actions">
@@ -952,16 +952,16 @@
 
       <div class="callout">
         <svg class="callout-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-        <p>Bagian ini bukan untuk mendefinisikan solusi teknis — tapi untuk membantu IT memahami apa yang Anda inginkan dari perspektif pengguna. IT yang akan menerjemahkan ke solusi yang tepat.</p>
+        <p>Bagian ini bukan untuk mendefinisikan solusi teknis, tapi untuk membantu IT memahami apa yang Anda inginkan dari perspektif pengguna. IT yang akan menerjemahkan ke solusi yang tepat.</p>
       </div>
 
       <div class="field" id="field-solution-vision">
         <div class="field-label">
-          <label for="solution-vision">Bayangan solusi ideal — seperti apa?</label>
+          <label for="solution-vision">Bayangan solusi ideal: seperti apa?</label>
           <span class="badge badge-required">Wajib</span>
         </div>
         <textarea id="solution-vision" rows="4" placeholder="Contoh: Idealnya ada sistem di mana pemohon bisa submit request online, approver langsung dapat notifikasi dan bisa approve dari mana saja (termasuk dari HP), dan semua orang bisa lihat statusnya real-time tanpa harus tanya-tanya..."></textarea>
-        <div class="field-hint">Gambarkan pengalaman yang Anda inginkan — bagaimana prosesnya berjalan dari awal sampai selesai.</div>
+        <div class="field-hint">Gambarkan pengalaman yang Anda inginkan. Bagaimana prosesnya berjalan dari awal sampai selesai.</div>
       </div>
 
       <div class="field" id="field-user-story">
@@ -1130,7 +1130,7 @@
           <span class="badge badge-required">Wajib</span>
         </div>
         <textarea id="urgency-reason" rows="3" placeholder="Contoh: Ada target dari direksi untuk efisiensi operasional 20% di Q3. Volume PO naik 3x lipat sejak ekspansi ke 3 kota baru dan sistem manual sudah tidak bisa handle. Audit internal juga menemukan risiko compliance dari proses approval yang tidak terdokumentasi..."></textarea>
-        <div class="field-hint">Apa konteks bisnis yang membuat ini jadi prioritas sekarang? Ini akan masuk ke Executive Summary BRD.</div>
+        <div class="field-hint">Apa konteks bisnis yang membuat ini jadi prioritas sekarang? Ini akan masuk ke Executive Summary dokumen.</div>
       </div>
 
       <div class="actions">
@@ -1172,7 +1172,7 @@
 
         <!-- Reframed problem -->
         <div class="result-block result-block-success">
-          <div class="result-label">Rumusan Masalah — Reframed</div>
+          <div class="result-label">Rumusan Masalah (Reframed)</div>
           <div class="result-value" id="res-reframed-problem"></div>
         </div>
 
@@ -1214,10 +1214,10 @@
         <div class="cta-section">
           <div class="cta-label">Langkah berikutnya</div>
           <div class="cta-heading">Dapatkan BRD lengkap, gratis</div>
-          <div class="cta-desc">BRD yang siap di-forward ke IT team — dengan Executive Summary, Functional Requirements yang sudah distrukturkan, Stakeholder Map, dan Open Items untuk follow-up.</div>
+          <div class="cta-desc">Dokumen spesifikasi lengkap yang siap di-forward ke IT team: Executive Summary, Functional Requirements yang sudah distrukturkan, Stakeholder Map, dan Open Items untuk follow-up.</div>
           <div class="cta-stack">
             <button class="btn btn-accent" onclick="openEmailModal()">
-              Dapatkan BRD lengkap — gratis <span class="btn-arrow">→</span>
+              Dapatkan dokumen lengkap, gratis <span class="btn-arrow">→</span>
             </button>
             <button class="btn-link" onclick="openDiscoveryCall()">Diskusi langsung dengan konsultan Labtek →</button>
           </div>
@@ -1240,14 +1240,14 @@
     <!-- Form state -->
     <div id="modal-form-state">
       <div class="modal-eyebrow">BRD Builder — Labtek Indie</div>
-      <div class="modal-title">BRD lo siap dikirim</div>
-      <div class="modal-desc">Isi data berikut dan BRD lengkap akan langsung di-download — siap di-forward ke IT team atau dipresentasikan ke atasan.</div>
+      <div class="modal-title">Dokumen lo siap dikirim</div>
+      <div class="modal-desc">Isi data berikut dan dokumen spesifikasi lengkap akan langsung di-download, siap di-forward ke IT team atau dipresentasikan ke atasan.</div>
 
       <div class="modal-form">
-        <input type="text" id="modal-nama" placeholder="Nama lengkap">
         <input type="email" id="modal-email" placeholder="Email kantor">
-        <input type="text" id="modal-perusahaan" placeholder="Nama perusahaan">
-        <input type="text" id="modal-role" placeholder="Role / Jabatan">
+        <input type="text" id="modal-nama" placeholder="Nama lengkap (opsional)">
+        <input type="text" id="modal-perusahaan" placeholder="Nama perusahaan (opsional)">
+        <input type="text" id="modal-role" placeholder="Role / Jabatan (opsional)">
         <button class="btn btn-accent" onclick="submitEmail()">Download BRD (PDF) →</button>
         <div class="modal-privacy">🔒 Data Anda aman. Tidak akan disebarkan ke pihak ketiga.</div>
       </div>
@@ -1917,17 +1917,12 @@ function submitEmail() {
   const role = document.getElementById('modal-role').value.trim();
 
   // Clear previous errors
-  ['modal-nama','modal-email','modal-perusahaan','modal-role'].forEach(id => {
-    document.getElementById(id).classList.remove('input-error');
-  });
+  document.getElementById('modal-email').classList.remove('input-error');
 
-  let valid = true;
-  if (!nama) { document.getElementById('modal-nama').classList.add('input-error'); valid = false; }
-  if (!email || !email.includes('@')) { document.getElementById('modal-email').classList.add('input-error'); valid = false; }
-  if (!perusahaan) { document.getElementById('modal-perusahaan').classList.add('input-error'); valid = false; }
-  if (!role) { document.getElementById('modal-role').classList.add('input-error'); valid = false; }
-
-  if (!valid) return;
+  if (!email || !email.includes('@')) {
+    document.getElementById('modal-email').classList.add('input-error');
+    return;
+  }
 
   state.emailData = { nama, email, perusahaan, role };
 
